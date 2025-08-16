@@ -20,6 +20,11 @@ app.use(
 );
 app.use(express.json());
 
+// 👋 Root route
+app.get('/', (req, res) => {
+  res.send('Hello World 🚀 — Ketik-Matic backend is running');
+});
+
 // Health check
 // (di Vercel endpoint menjadi: GET /api/health)
 app.get("/health", (req, res) => {
