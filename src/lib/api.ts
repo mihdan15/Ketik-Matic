@@ -1,6 +1,6 @@
 import { ApiParams } from "../types";
 
-const API_BASE = "http://localhost:3001/api";
+const API_BASE = "https://ketik-matic-api.vercel.app/api";
 
 export async function seriousRequest(params: ApiParams): Promise<string> {
   const response = await fetch(`${API_BASE}/serious`, {
