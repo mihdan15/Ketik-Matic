@@ -1,11 +1,14 @@
-import "dotenv/config";
 import express from "express";
 import cors from "cors";
-
+import dotenv from "dotenv";
 import { generateSeriousContent, generateInfiniteContent } from "../gemini.ts";
+
 import { buildSeriousPrompt, buildInfinitePrompt } from "../prompts.ts";
 
+dotenv.config();
+console.log("GEMINI API Key Loaded:", process.env.GEMINI_API_KEY);
 const app = express();
+const PORT = process.env.PORT || 3001;
 
 app.use(
   cors({
@@ -13,6 +16,7 @@ app.use(
     credentials: true,
   })
 );
+
 app.use(express.json());
 
 // 👋 Root route
@@ -25,26 +29,30 @@ app.get("/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
-// SERIOUS mode
-app.post("/serious", async (req, res) => {
+// SERIOUS mode - generate complete essay
+app.post("/api/serious", async (req, res) => {
   try {
     const { topic, lang, tone, targetWords } = req.body;
-    if (!topic) return res.status(400).json({ error: "Topic is required" });
-
+    if (!topic) {
+      return res.status(400).json({ error: "Topic is required" });
+    }
     const prompt = buildSeriousPrompt(topic, lang, tone, targetWords);
     const text = await generateSeriousContent(prompt);
     res.json({ text });
   } catch (error) {
-    console.error("Error in /serious:", error);
+    console.error("Error in /api/serious:", error);
     res.status(500).json({ error: "Failed to generate content" });
   }
 });
 
-// INFINITE mode (SSE)
-app.post("/infinite", async (req, res) => {
+// INFINITE mode - streaming content
+app.post("/api/infinite", async (req, res) => {
   try {
     const { topic, lang, tone, continuation } = req.body;
-    if (!topic) return res.status(400).json({ error: "Topic is required" });
+
+    if (!topic) {
+      return res.status(400).json({ error: "Topic is required" });
+    }
 
     const prompt = buildInfinitePrompt(topic, lang, tone, continuation);
 
@@ -65,10 +73,14 @@ app.post("/infinite", async (req, res) => {
 
     res.end();
   } catch (error) {
-    console.error("Error in /infinite:", error);
+    console.error("Error in /api/infinite:", error);
     res.status(500).json({ error: "Failed to start streaming" });
   }
 });
 
-// ⚠️ Penting: JANGAN ada app.listen di sini
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`📝 KetikMatic backend ready`);
+});
+
 export default app;
